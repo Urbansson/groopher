@@ -27,5 +27,5 @@ WORKDIR /app
 COPY --from=builder /app/main ./
 
 RUN chmod +x ./main
-CMD ["/app/main", "-t", "NjM3Njc5Mzg4ODk2MjY0MjEz.XbSOUw.AeHceAdpgmi42hx4JoLhn7M09js"]
+CMD ["/app/main"]
 
