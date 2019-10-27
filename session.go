@@ -1,10 +1,11 @@
 package main
 
 import (
-	"container/list"
+	"context"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"sync"
+	"time"
 )
 
 // Session is a active play session in a channel
@@ -12,17 +13,23 @@ type Session struct {
 	vc         *discordgo.VoiceConnection
 	guildId    string
 	pcmChannel chan []int16
-	queue      *list.List
+	queue      chan *Song
 	playing    *Audio
+	cancel     context.CancelFunc
 	sync.Mutex
 }
 
 func (s *Session) Queue(url string) {
-	s.Lock()
-	defer s.Unlock()
 	song := NewSong(url)
-	go song.Download()
-	s.queue.PushBack(song)
+
+	select {
+	case s.queue <- song:
+		go song.Download()
+	default:
+		fmt.Println("queue is full ignoring message")
+		// message dropped
+	}
+
 }
 
 func (s *Session) Skip() {
@@ -34,56 +41,57 @@ func (s *Session) Skip() {
 func (s *Session) Stop() {
 	s.Lock()
 	defer s.Unlock()
-	s.queue = list.New()
+	for len(s.queue) > 0 {
+		<-s.queue
+	}
+	s.cancel()
 	s.playing.stop()
 }
 
-func (s *Session) process(onExit func()) {
+func (s *Session) process(ctx context.Context, onExit func()) {
 	defer s.vc.Disconnect()
 	for {
-		s.Lock()
-		next := s.queue.Front()
-		if next == nil {
-			s.Unlock()
+		select {
+		case <-ctx.Done():
+			fmt.Println("leaving")
 			break
-		}
-		s.queue.Remove(next)
-		s.Unlock()
-
-		song := next.Value.(*Song)
-		fmt.Println("Playing", song.Url)
-
-		s.Lock()
-		s.playing = &Audio{
-			song:  song,
-			close: make(chan int),
-			vc:    s.vc,
-		}
-		s.Unlock()
-		err := s.playing.Play()
-		if err != nil {
-			fmt.Println("Error during playback")
+		case <-time.After(1 * time.Minute):
+			fmt.Println("bai boys leaving")
+			break
+		case song := <-s.queue:
+			fmt.Println("Playing", song.Url)
+			s.Lock()
+			s.playing = &Audio{
+				song:  song,
+				close: make(chan int),
+				vc:    s.vc,
+			}
+			s.Unlock()
+			err := s.playing.Play()
+			if err != nil {
+				fmt.Println("Error during playback")
+			}
 		}
 	}
 	onExit()
 }
 
-func (s *Session) Start(onExit func()) {
-	go s.process(onExit)
-}
-
-func CreateSession(ds *discordgo.Session, guildID, channelID string) (*Session, error) {
+func CreateSession(ds *discordgo.Session, guildID, channelID string, onExit func()) (*Session, error) {
 	vc, err := ds.ChannelVoiceJoin(guildID, channelID, false, false)
 	if err != nil {
 		return nil, err
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
 	ses := &Session{
 		vc:         vc,
 		pcmChannel: make(chan []int16, 320),
-		queue:      list.New(),
+		queue:      make(chan *Song, 50),
 		guildId:    guildID,
+		cancel:     cancel,
 	}
+
+	go ses.process(ctx, onExit)
 
 	return ses, nil
 }

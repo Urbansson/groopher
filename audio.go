@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"gopkg.in/hraban/opus.v2"
@@ -23,6 +24,9 @@ type Audio struct {
 }
 
 func (a *Audio) Play() error {
+	defer func() {
+		a.song.Cleanup()
+	}()
 	fmt.Println("waiting for media to be ready:", a.song.Url)
 	select {
 	case <-a.close:
@@ -30,9 +34,11 @@ func (a *Audio) Play() error {
 	case <-a.song.Wait():
 	}
 	fmt.Println("media ready playing: ", a.song.Url)
-	defer func() {
-		a.song.Cleanup()
-	}()
+
+	if a.song.err != nil {
+		fmt.Println("failed to download song", a.song.err)
+		return errors.New("failed to access file")
+	}
 
 	enc, err := opus.NewEncoder(frameRate, channels, opus.AppAudio)
 	if err != nil {

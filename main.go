@@ -41,9 +41,6 @@ func main() {
 	// Register messageCreate as a callback for the messageCreate events.
 	dg.AddHandler(messageCreate)
 
-	// Register guildCreate as a callback for the guildCreate events.
-	dg.AddHandler(guildCreate)
-
 	// Open the websocket and begin listening.
 	err = dg.Open()
 	if err != nil {
@@ -105,16 +102,14 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			}
 
 			if sessions[g.ID] == nil {
-				sessions[g.ID], _ = CreateSession(s, g.ID, activeChannel)
-				sessions[g.ID].Queue(strings.Split(m.Content, " ")[1])
-				sessions[g.ID].Start(func() {
+				sessions[g.ID], _ = CreateSession(s, g.ID, activeChannel, func() {
 					lock.Lock()
 					defer lock.Unlock()
 					sessions[g.ID] = nil
 				})
-			} else {
-				sessions[g.ID].Queue(strings.Split(m.Content, " ")[1])
 			}
+			sessions[g.ID].Queue(strings.Split(m.Content, " ")[1])
+
 		} else if strings.HasPrefix(m.Content, "!stop") {
 			if sessions[g.ID] != nil {
 				sessions[g.ID].Stop()
@@ -128,13 +123,5 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 **!skip** - Skip current playing track
 **!stop** - Stops tracks and clears queue`)
 		}
-	}
-}
-
-// This function will be called (due to AddHandler above) every time a new
-// guild is joined.
-func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
-	if event.Guild.Unavailable {
-		return
 	}
 }
