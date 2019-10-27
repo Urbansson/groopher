@@ -88,7 +88,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	fmt.Printf("%20s %20s %20s %20s > %s\n", g.ID, c.ID, time.Now().Format(time.Stamp), m.Author.Username, m.Content)
 
-	if m.Content[:1] == "!" {
+	if strings.HasPrefix(m.Content, "!") {
 		if strings.HasPrefix(m.Content, "!play") {
 			activeChannel := ""
 			for _, vs := range g.VoiceStates {
