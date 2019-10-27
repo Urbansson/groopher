@@ -1,0 +1,16 @@
+github.com/bwmarrin/discordgo v0.20.1 h1:Ihh3/mVoRwy3otmaoPDUioILBJq4fdWkpsi83oj2Lmk=
+github.com/bwmarrin/discordgo v0.20.1/go.mod h1:O9S4p+ofTFwB02em7jkpkV8M3R0/PUVOwN61zSZ0r4Q=
+github.com/google/uuid v1.1.1 h1:Gkbcsh/GbpXz7lPftLA3P6TYMwjCLYm83jiFQZF/3gY=
+github.com/google/uuid v1.1.1/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/gorilla/websocket v1.4.0 h1:WDFjx/TMzVgy9VdMMQi2K2Emtwi2QcUQsztZ/zLaH/Q=
+github.com/gorilla/websocket v1.4.0/go.mod h1:E7qHFY5m1UJ88s3WnNqhKjPHQ0heANvMoAMk2YaljkQ=
+golang.org/x/crypto v0.0.0-20181030102418-4d3f4d9ffa16 h1:y6ce7gCWtnH+m3dCjzQ1PCuwl28DDIc3VNnvY29DlIA=
+golang.org/x/crypto v0.0.0-20181030102418-4d3f4d9ffa16/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
+golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2 h1:VklqNMn3ovrHsnt90PveolxSbWFaJdECFbxSq0Mqo2M=
+golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
+golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a h1:1BGLXjeY4akVXGgbC9HugT3Jv3hCI0z56oJR5vAMgBU=
+golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
+gopkg.in/hraban/opus.v2 v2.0.0-20180426093920-0f2e0b4fc6cd h1:oAcaGkUcXajq9yi+UKvzJMSKEb++XegVTSQjOlu3MVU=
+gopkg.in/hraban/opus.v2 v2.0.0-20180426093920-0f2e0b4fc6cd/go.mod h1:/L5E7a21VWl8DeuCPKxQBdVG5cy+L0MRZ08B1wnqt7g=
+layeh.com/gopus v0.0.0-20161224163843-0ebf989153aa h1:WNU4LYsgD2UHxgKgB36mL6iMAMOvr127alafSlgBbiA=
+layeh.com/gopus v0.0.0-20161224163843-0ebf989153aa/go.mod h1:AOef7vHz0+v4sWwJnr0jSyHiX/1NgsMoaxl+rEPz/I0=
