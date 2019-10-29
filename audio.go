@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
@@ -9,32 +10,26 @@ import (
 )
 
 const (
-	channels  int = 2
-	frameRate int = 48000
 	frameSize int = 960
-	maxBytes  int = (frameSize * 2) * 2
+	maxBytes      = (frameSize * 2) * 2
 )
 
 type Audio struct {
 	song    *Song
 	playing bool
-	close   chan int
+	cancel  context.CancelFunc
 	vc      *discordgo.VoiceConnection
 	m       sync.Mutex
 }
 
-func (a *Audio) Play() error {
-	defer func() {
-		a.song.Cleanup()
-	}()
-	fmt.Println("waiting for media to be ready:", a.song.Url)
+func (a *Audio) Play(ctx context.Context) error {
+	cctx, cancel := context.WithCancel(ctx)
+	a.cancel = cancel
 	select {
-	case <-a.close:
+	case <-ctx.Done():
 		return nil
-	case <-a.song.Wait():
+	default:
 	}
-	fmt.Println("media ready playing: ", a.song.Url)
-
 	if a.song.err != nil {
 		fmt.Println("failed to download song", a.song.err)
 		return errors.New("failed to access file")
@@ -45,15 +40,16 @@ func (a *Audio) Play() error {
 		return err
 	}
 
-	for _, buf := range a.song.Data {
+	buf, err := a.song.Stream(cctx, frameSize)
+	fmt.Println("starting opus stream transmission")
+	for sbuf := range buf {
 		select {
-		case <-a.close:
+		case <-cctx.Done():
 			return nil
 		default:
 		}
-
 		data := make([]byte, maxBytes)
-		n, err := enc.Encode(buf, data)
+		n, err := enc.Encode(sbuf, data)
 		if err != nil {
 			return err
 		}
@@ -67,5 +63,5 @@ func (a *Audio) Play() error {
 }
 
 func (a *Audio) stop() {
-	close(a.close)
+	a.cancel()
 }

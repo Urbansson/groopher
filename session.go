@@ -24,12 +24,11 @@ func (s *Session) Queue(url string) {
 
 	select {
 	case s.queue <- song:
-		go song.Download()
+		fmt.Println("queued song")
 	default:
 		fmt.Println("queue is full ignoring message")
 		// message dropped
 	}
-
 }
 
 func (s *Session) Skip() {
@@ -45,35 +44,40 @@ func (s *Session) Stop() {
 		<-s.queue
 	}
 	s.cancel()
-	s.playing.stop()
+	if s.playing != nil {
+		s.playing.stop()
+	}
 }
 
 func (s *Session) process(ctx context.Context, onExit func()) {
+	// TODO: handle errors
 	defer s.vc.Disconnect()
+	defer onExit()
 	for {
 		select {
 		case <-ctx.Done():
 			fmt.Println("leaving")
-			break
+			return
 		case <-time.After(1 * time.Minute):
 			fmt.Println("bai boys leaving")
-			break
+			return
 		case song := <-s.queue:
 			fmt.Println("Playing", song.Url)
 			s.Lock()
 			s.playing = &Audio{
-				song:  song,
-				close: make(chan int),
-				vc:    s.vc,
+				song: song,
+				vc:   s.vc,
 			}
 			s.Unlock()
-			err := s.playing.Play()
+			// TODO: handle errors
+			s.vc.Speaking(true)
+			err := s.playing.Play(ctx)
+			s.vc.Speaking(false)
 			if err != nil {
 				fmt.Println("Error during playback")
 			}
 		}
 	}
-	onExit()
 }
 
 func CreateSession(ds *discordgo.Session, guildID, channelID string, onExit func()) (*Session, error) {
