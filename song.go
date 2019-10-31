@@ -25,7 +25,7 @@ type Song struct {
 
 func (s Song) Stream(ctx context.Context, frameSize int) (<-chan []int16, error) {
 	ctx, cancel := context.WithCancel(ctx)
-	ytdl := exec.CommandContext(ctx, "youtube-dl", "-f", "bestaudio", s.Url, "-o", "-")
+	ytdl := exec.CommandContext(ctx, "youtube-dl", s.Url, "-o", "-")
 	ffmpeg := exec.CommandContext(ctx, "ffmpeg", "-i", "pipe:0", "-filter:a", fmt.Sprintf("volume=%.2f", volume), "-ar", strconv.Itoa(frameRate), "-ac", strconv.Itoa(channels), "-f", "s16le", "pipe:1")
 
 	// Get all the pipes
