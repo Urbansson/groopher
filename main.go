@@ -23,8 +23,9 @@ var lock sync.Mutex
 
 func main() {
 
-	if token == "" {
-		fmt.Println("No token provided. Please run: airhorn -t <bot token>")
+	token, ok := os.LookupEnv("DISCORD_BOT_TOKEN")
+	if !ok || token == "" {
+		fmt.Println("No token provided. Please export DISCORD_BOT_KEY=<token>")
 		return
 	}
 
@@ -108,8 +109,12 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 					sessions[g.ID] = nil
 				})
 			}
-			sessions[g.ID].Queue(strings.Split(m.Content, " ")[1])
-
+			commands := strings.Split(m.Content, " ")
+			if len(commands) == 2 {
+				sessions[g.ID].Queue(commands[1])
+			} else {
+				fmt.Println("invalid command")
+			}
 		} else if strings.HasPrefix(m.Content, "!stop") {
 			if sessions[g.ID] != nil {
 				sessions[g.ID].Stop()
